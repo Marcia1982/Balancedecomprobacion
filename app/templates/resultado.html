@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Financiero - Validador Financiero AI</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 2rem; }
+        h1 { color: #38bdf8; margin-bottom: 0.5rem; }
+        p.subtitulo { color: #94a3b8; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        h2 { color: #38bdf8; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; font-weight: 600; }
+        td { color: #e2e8f0; }
+        td.moneda::before { content: "₡ "; }
+        td.moneda, td.numero { text-align: right; }
+        .seccion-ia h3 { color: #38bdf8; margin-bottom: 0.5rem; }
+        .seccion-ia p { background: #0f172a; border-left: 4px solid #38bdf8; padding: 1rem; border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 1rem; white-space: pre-wrap; }
+        .no-indicado { color: #f87171; font-style: italic; }
+        a.btn { display: inline-block; margin-top: 1rem; color: #38bdf8; text-decoration: none; border-bottom: 1px solid #38bdf8; padding: 0.5rem 0; }
+        a.btn:hover { color: #7dd3fc; }
+        .meta { font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem; }
+
+        /* Tablero de contadores grandes */
+        .tablero { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .contador { background: #1e293b; border: 1px solid #334155; border-radius: 0.75rem; padding: 1.25rem; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .contador .etiqueta { color: #94a3b8; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .contador .valor { color: #38bdf8; font-size: 1.75rem; font-weight: 700; }
+        .contador .valor.positivo { color: #4ade80; }
+        .contador .valor.negativo { color: #f87171; }
+
+        /* Filtro de búsqueda */
+        .filtro-container { margin-bottom: 1rem; }
+        input#filtro-buscar { width: 100%; max-width: 400px; padding: 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 0.5rem; color: #e2e8f0; font-size: 0.95rem; }
+        input#filtro-buscar:focus { border-color: #38bdf8; outline: none; }
+        .tabla-detalle { overflow-x: auto; }
+
+        @media (max-width: 768px) {
+            .tablero { grid-template-columns: 1fr; }
+            body { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Informe Financiero</h1>
+            <p class="subtitulo">Validador Financiero AI &mdash; Salud financiera de la empresa</p>
+        </header>
+
+        <div class="meta">
+            <strong>Archivo:</strong> {{ nombre_archivo }} &nbsp;|&nbsp;
+            <strong>Filas procesadas:</strong> {{ filas_procesadas }}
+        </div>
+
+        <!-- Tablero de contadores grandes -->
+        <div class="tablero">
+            <div class="contador">
+                <div class="etiqueta">Total de Activos</div>
+                <div class="valor {% if datos.Total_Activos >= 0 %}positivo{% else %}negativo{% endif %}">{{ "%.2f" | format(datos.Total_Activos) }}</div>
+            </div>
+            <div class="contador">
+                <div class="etiqueta">Total de Pasivos</div>
+                <div class="valor {% if datos.Total_Pasivos >= 0 %}positivo{% else %}negativo{% endif %}">{{ "%.2f" | format(datos.Total_Pasivos) }}</div>
+            </div>
+            <div class="contador">
+                <div class="etiqueta">Total de Patrimonio</div>
+                <div class="valor {% if datos.Total_Patrimonio >= 0 %}positivo{% else %}negativo{% endif %}">{{ "%.2f" | format(datos.Total_Patrimonio) }}</div>
+            </div>
+            <div class="contador">
+                <div class="etiqueta">Ingresos Totales</div>
+                <div class="valor {% if datos.Ingresos_Totales >= 0 %}positivo{% else %}negativo{% endif %}">{{ "%.2f" | format(datos.Ingresos_Totales) }}</div>
+            </div>
+            <div class="contador">
+                <div class="etiqueta">Gastos Totales</div>
+                <div class="valor {% if datos.Gastos_Totales >= 0 %}positivo{% else %}negativo{% endif %}">{{ "%.2f" | format(datos.Gastos_Totales) }}</div>
+            </div>
+            <div class="contador">
+                <div class="etiqueta">Utilidad Neta</div>
+                <div class="valor {% if datos.Utilidad_Neta >= 0 %}positivo{% else %}negativo{% endif %}">{{ "%.2f" | format(datos.Utilidad_Neta) }}</div>
+            </div>
+            <div class="contador">
+                <div class="etiqueta">Margen Neto</div>
+                <div class="valor {% if datos.Margen_Neto_Porcentaje >= 0 %}positivo{% else %}negativo{% endif %}">{{ "%.2f" | format(datos.Margen_Neto_Porcentaje) }} %</div>
+            </div>
+            <div class="contador">
+                <div class="etiqueta">Endeudamiento</div>
+                <div class="valor {% if datos.Endeudamiento_Porcentaje >= 0 %}positivo{% else %}negativo{% endif %}">{{ "%.2f" | format(datos.Endeudamiento_Porcentaje) }} %</div>
+            </div>
+        </div>
+
+        <!-- Tabla de razones financieras -->
+        <div class="card">
+            <h2>Razones Financieras (calculadas por código)</h2>
+            <table>
+                <tr><th>Total de Activos</th><td class="moneda">{{ "%.2f" | format(datos.Total_Activos) }}</td></tr>
+                <tr><th>Total de Pasivos</th><td class="moneda">{{ "%.2f" | format(datos.Total_Pasivos) }}</td></tr>
+                <tr><th>Total de Patrimonio</th><td class="moneda">{{ "%.2f" | format(datos.Total_Patrimonio) }}</td></tr>
+                <tr><th>Ingresos Totales</th><td class="moneda">{{ "%.2f" | format(datos.Ingresos_Totales) }}</td></tr>
+                <tr><th>Gastos Totales</th><td class="moneda">{{ "%.2f" | format(datos.Gastos_Totales) }}</td></tr>
+                <tr><th>Utilidad Neta</th><td class="moneda">{{ "%.2f" | format(datos.Utilidad_Neta) }}</td></tr>
+                <tr><th>Margen Neto</th><td class="numero">{{ "%.2f" | format(datos.Margen_Neto_Porcentaje) }} %</td></tr>
+                <tr><th>Nivel de Endeudamiento</th><td class="numero">{{ "%.2f" | format(datos.Endeudamiento_Porcentaje) }} %</td></tr>
+            </table>
+        </div>
+
+        <!-- Detalle por registro con filtro -->
+        <div class="card">
+            <h2>Detalle por Registro</h2>
+            <div class="filtro-container">
+                <input type="text" id="filtro-buscar" placeholder="Buscar por código o descripción...">
+            </div>
+            <div class="tabla-detalle">
+                <table id="tabla-detalle">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th class="numero">Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fila in filas_detalle %}
+                        <tr>
+                            <td>{{ fila.Código }}</td>
+                            <td>{{ fila.Descripción }}</td>
+                            <td class="moneda">{{ "%.2f" | format(fila.Actual) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Informe ejecutivo del agente IA -->
+        <div class="card seccion-ia">
+            <h2>Informe Ejecutivo del Agente IA (CFO)</h2>
+            <h3>1. Diagnóstico General</h3>
+            <p class="{{ 'no-indicado' if informe.diagnostico_general == 'no indicado' else '' }}">{{ informe.diagnostico_general }}</p>
+            <h3>2. Fortalezas</h3>
+            <p class="{{ 'no-indicado' if informe.fortalezas == 'no indicado' else '' }}">{{ informe.fortalezas }}</p>
+            <h3>3. Alertas y Recomendaciones</h3>
+            <p class="{{ 'no-indicado' if informe.alertas_recomendaciones == 'no indicado' else '' }}">{{ informe.alertas_recomendaciones }}</p>
+        </div>
+
+        <p><a href="/" class="btn">&larr; Procesar otro archivo</a></p>
+    </div>
+
+    <script>
+        // Filtro de búsqueda en tabla de detalle (JS nativo, sin librerías externas)
+        document.getElementById('filtro-buscar').addEventListener('input', function (e) {
+            const termino = e.target.value.toLowerCase();
+            const filas = document.querySelectorAll('#tabla-detalle tbody tr');
+            filas.forEach(function (fila) {
+                const texto = fila.textContent.toLowerCase();
+                fila.style.display = texto.includes(termino) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

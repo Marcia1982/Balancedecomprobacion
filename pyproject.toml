@@ -1,0 +1,18 @@
+[project]
+name = "validador-financiero-ai"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "flask",
+    "python-dotenv",
+    "openai",
+    "pandas",
+    "openpyxl",
+    "numpy",
+    "pytest>=9.2.0",
+]
+
+[project.scripts]
+validador = "app.main:main"
+
+[tool.uv]
