@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Validador Financiero AI</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; padding: 2rem; }
+        .container { max-width: 450px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 2rem; }
+        h1 { color: #38bdf8; margin-bottom: 0.5rem; }
+        p.subtitulo { color: #94a3b8; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        label { display: block; margin-bottom: 0.5rem; color: #cbd5e1; font-weight: 600; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 0.5rem; color: #e2e8f0; font-size: 0.95rem; margin-bottom: 1rem; }
+        input[type="text"]:focus, input[type="password"]:focus { border-color: #38bdf8; outline: none; }
+        button { width: 100%; padding: 0.875rem; background: #38bdf8; color: #0f172a; border: none; border-radius: 0.5rem; font-weight: 700; font-size: 1rem; cursor: pointer; }
+        button:hover { background: #7dd3fc; }
+        .error { color: #f87171; background: #450a0a; border: 1px solid #7f1d1d; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; }
+        .pista { font-size: 0.85rem; color: #94a3b8; margin-top: 0.25rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Validador Financiero AI</h1>
+            <p class="subtitulo">Inicia sesión para acceder al análisis de balance de comprobación</p>
+        </header>
+
+        {% with mensajes = get_flashed_messages(category_filter=["error"]) %}
+        {% if mensajes %}
+        <div class="card error"><strong>Error:</strong> {{ mensajes[0] }}</div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="card">
+            <form action="/login" method="post">
+                <label for="usuario">Usuario</label>
+                <input type="text" name="usuario" id="usuario" required>
+
+                <label for="clave">Contraseña</label>
+                <input type="password" name="clave" id="clave" required>
+
+                <button type="submit">Ingresar</button>
+            </form>
+        </div>
+
+        <p class="pista">Credenciales configuradas mediante variables de entorno.</p>
+    </div>
+</body>
+</html>

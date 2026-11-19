@@ -2,10 +2,12 @@
 
 import os
 import tempfile
-from flask import Blueprint, render_template, request, current_app
+import hmac
+from flask import Blueprint, render_template, request, session, redirect, url_for, flash
 
 from app.services.finanzas_service import leer_y_procesar_balance
 from app.services.ia_service import generar_informe_ia
+from app.auth import login_requerido, verificar_credenciales
 
 balance_bp = Blueprint("balance", __name__)
 
@@ -13,13 +15,47 @@ balance_bp = Blueprint("balance", __name__)
 ARCHIVO_POR_DEFECTO = os.path.join("INSUMOS", "balance_comprobacion.xlsx")
 
 
+# --- Autenticación ---
+
+@balance_bp.route("/login", methods=["GET"])
+def login():
+    """Pantalla de login: formulario con usuario y contraseña."""
+    return render_template("login.html")
+
+
+@balance_bp.route("/login", methods=["POST"])
+def login_post():
+    """Procesa el login: compara con APP_USUARIO y APP_CLAVE de forma segura."""
+    usuario = request.form.get("usuario", "")
+    clave = request.form.get("clave", "")
+
+    if verificar_credenciales(usuario, clave):
+        session["usuario_autenticado"] = True
+        session.permanent = True  # expira según PERMANENT_SESSION_LIFETIME
+        return redirect(url_for("balance.index"))
+
+    flash("Usuario o contraseña incorrectos", "error")
+    return render_template("login.html")
+
+
+@balance_bp.route("/salir")
+def salir():
+    """Borra la sesión y redirige al login."""
+    session.pop("usuario_autenticado", None)
+    return redirect(url_for("balance.login"))
+
+
+# --- Rutas protegidas ---
+
 @balance_bp.route("/", methods=["GET"])
+@login_requerido
 def index():
     """Pantalla principal: formulario para subir el Balance de Comprobación."""
     return render_template("index.html")
 
 
 @balance_bp.route("/procesar", methods=["POST"])
+@login_requerido
 def procesar():
     """Recibe el Excel, aplica reglas de negocio y genera el informe de IA."""
     archivo = request.files.get("archivo_excel")
